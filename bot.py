@@ -53,7 +53,7 @@ PROFILES_FILE = r"C:\Users\chesn\Desktop\аэа\profiles.json"
 
 
 def load_profiles():
-    #Загружаем пользовательские профили из JSON-файла
+    # Загружаем пользовательские профили из JSON-файла
     if not os.path.exists(PROFILES_FILE):
         print(f"Файл {PROFILES_FILE} не найден, использую стандартные имена")
         return {}
@@ -68,7 +68,7 @@ def load_profiles():
 
 
 def get_user_custom_profile(user_id):
-    #Возвращаем кастомный профиль пользователя, если он есть
+    # Возвращаем кастомный профиль пользователя, если он есть
     profiles = load_profiles()
     user_id_str = str(user_id)
     if user_id_str in profiles:
@@ -179,7 +179,7 @@ def create_quote_image(quote_text, author_name, avatar_url):
     img = Image.new("RGB", (width, total_height), color="#1e1e2e")
     draw = ImageDraw.Draw(img)
 
-    #ава
+    # ава
     try:
         resp = requests.get(avatar_url, timeout=5)
         avatar = Image.open(BytesIO(resp.content)).resize((avatar_size, avatar_size))
@@ -187,7 +187,7 @@ def create_quote_image(quote_text, author_name, avatar_url):
     except:
         pass
 
-    #ник
+    # ник
     draw.text((name_x, name_y), author_name, fill=name_color, font=font_big)
 
     # сама цитата построчно
@@ -204,7 +204,6 @@ def create_quote_image(quote_text, author_name, avatar_url):
 
 def create_quote_image_multi(quotes_list, width=800):
     """Создаёт картинку-коллаж из нескольких цитат (высота подстраивается под количество)"""
-
 
     avatar_size = 40  # размер аватарки
     avatar_x = 30  # отступ аватарки слева
@@ -383,32 +382,78 @@ def cmd_quote_collage(event, vk_session, vk):
 # тут все запускается
 print("Бот запущен! Ожидание сообщений...")
 
-for event in longpoll.listen():
-    if event.type == VkBotEventType.MESSAGE_NEW:
-        msg = event.object.message
-        peer_id = msg["peer_id"]
-        text = msg["text"].lower().strip()
+# Импортируем типы ошибок для обработки
+from requests.exceptions import ReadTimeout, ConnectionError
 
-        # Команда "цитата"
-        if text == "цитата":
-            result = cmd_quote(event, vk_session, vk)
-            if result:
-                vk.messages.send(
-                    peer_id=peer_id, message=result, random_id=get_random_id()
-                )
+while True:
+    try:
+        for event in longpoll.listen():
+            if event.type == VkBotEventType.MESSAGE_NEW:
+                msg = event.object.message
+                peer_id = msg["peer_id"]
+                text = msg["text"].lower().strip()
 
-        # Команда "коллаж"
-        elif text == "коллаж":
-            result = cmd_quote_collage(event, vk_session, vk)
-            if result:
-                vk.messages.send(
-                    peer_id=peer_id, message=result, random_id=get_random_id()
-                )
+                # Команда "цитата"
+                if text == "цитата":
+                    result = cmd_quote(event, vk_session, vk)
+                    if result:
+                        vk.messages.send(
+                            peer_id=peer_id, message=result, random_id=get_random_id()
+                        )
 
-        # Обычные команды из словаря
-        elif text in commands:
-            answer = commands[text]()
-            vk.messages.send(peer_id=peer_id, message=answer, random_id=get_random_id())
-            print(
-                f"Сообщение от {msg['from_id']} в чате {peer_id}: '{text}' -> ответ отправлен"
-            )
+                # Команда "коллаж"
+                elif text == "коллаж":
+                    result = cmd_quote_collage(event, vk_session, vk)
+                    if result:
+                        vk.messages.send(
+                            peer_id=peer_id, message=result, random_id=get_random_id()
+                        )
+
+                # Обычные команды из словаря
+                elif text in commands:
+                    answer = commands[text]()
+                    vk.messages.send(
+                        peer_id=peer_id, message=answer, random_id=get_random_id()
+                    )
+                    print(
+                        f"Сообщение от {msg['from_id']} в чате {peer_id}: '{text}' -> ответ отправлен"
+                    )
+
+    # ошибочки
+    except ReadTimeout:
+        print("⏰ Таймаут соединения с VK (сервер не ответил вовремя)")
+        print("🔄 Переподключаюсь через 3 секунды...")
+        time.sleep(3)
+        try:
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+            print("✅ Переподключено!")
+        except Exception as e:
+            print(f"❌ Ошибка переподключения: {e}")
+            print("🔄 Повторная попытка через 10 секунд...")
+            time.sleep(10)
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+
+    except ConnectionError:
+        print("🌐 Ошибка соединения (проблема с интернетом или сервером VK)")
+        print("🔄 Переподключаюсь через 5 секунд...")
+        time.sleep(5)
+        try:
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+            print("✅ Переподключено!")
+        except Exception as e:
+            print(f"❌ Ошибка переподключения: {e}")
+            print("🔄 Повторная попытка через 15 секунд...")
+            time.sleep(15)
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+
+    except Exception as e:
+        print(f"❌ Неожиданная ошибка: {type(e).__name__}: {e}")
+        print("🔄 Переподключаюсь через 5 секунд...")
+        time.sleep(5)
+        try:
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)
+            print("✅ Переподключено!")
+        except:
+            print("⚠️ Не удалось переподключиться, пробую снова через 10 секунд...")
+            time.sleep(10)
+            longpoll = VkBotLongPoll(vk_session, GROUP_ID)

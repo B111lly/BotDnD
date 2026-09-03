@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 import json
 
-# НЕ ЗАБЫТЬ ПОМЕНЯТЬ
-TOKEN = "vk1.a.ptzBVqWpVUh7Q30u8FV-Ku8u1Zdhx_RpjZhSut9jViFPdBxH7w48znMt8PCDzp0Ht3jys7iRk-V4bCyn3tDuKF9GqXMaiZJVrS9JD_VjUm_VdmUMHirkRIxYtF3xY7Fr2JMyeituuZ8XuMNMAjQtguuFaqexVqtSnK4COimQO0BaURtaTprHnGSB_gXTqeZpA_lylBwTKE5lTrj3teS7fA"
+# НЕ ЗАБЫТЬ ПОМЕНЯТЬ И СДЕЛАТЬ ТАК, ЧТОБЫ ОН БЫЛ СКРЫТ, ПОКА ЗАГЛУШКА
+TOKEN = "vk"
 GROUP_ID = 235623171
 
 # Подключение к VK API

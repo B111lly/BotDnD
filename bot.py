@@ -11,7 +11,7 @@ import json
 
 # НЕ ЗАБЫТЬ ПОМЕНЯТЬ И СДЕЛАТЬ ТАК, ЧТОБЫ ОН БЫЛ СКРЫТ, ПОКА ЗАГЛУШКА
 TOKEN = "vk"
-GROUP_ID = 235623171
+GROUP_ID = # ТУТ ЦИФЕРКИ ВСТАВИТЬ
 
 # Подключение к VK API
 vk_session = vk_api.VkApi(token=TOKEN, api_version="5.199")
